@@ -66,7 +66,7 @@ read
 @ 09,00 to 16,79
 @ 09,30 say " DADOS DO VEICULO "
 @ 10,01 say "Marca..............: "
-@ 11,01 say "Ano de fabricacao: "
+@ 11,01 say "Ano de fabricacao..: "
 @ 12,01 say "Tipo...............:   [P]asseio [E]sportivo [L]uxo"
 @ 13,01 say "Motor..............: "
 @ 14,01 say "Valor (fipe).......: "
@@ -187,16 +187,16 @@ else
     cCorSeguro1 := "w/r"
 endif
 
-set color to w/r    
-@ 17,00 to 23,39
+//set color to cCorSeguro1   
+@ 17,00 to 23,39 color cCorSeguro1
 @ 18,01 say "SEGURADORA 01"
 @ 19,01 to 19,38
 @ 20,01 say "Mensal....: " + Transform(nMensalSeguro1, "@E 999,999.99")
 @ 21,01 say "Trimestral: " + Transform(nTrimestralSeguro1, "@E 999,999.99")
 @ 22,01 say "Anual.....: " + Transform(nAnualSeguro1, "@E 999,999.99")
 
-set color to cCorSeguro2
-@ 17,40 to 23,79
+//set color to cCorSeguro2
+@ 17,40 to 23,79 color cCorSeguro2
 @ 18,41 say "SEGURADORA 02"
 @ 19,41 to 19,78
 @ 20,41 say "Mensal....: " + Transform(nMensalSeguro2, "@E 999,999.99")
