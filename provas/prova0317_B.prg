@@ -19,7 +19,9 @@ do while .t.
     nTotalRemuneracaoFem    := 0
     nQtdHomens80            := 0
     nQtdMulheresAntes2003   := 0
-    nQtdHomensDemitidos2015 := 0 
+    nQtdHomensDemitidos2015 := 0
+    nHomensNaoAposentados   := 0
+    nMulheresNaoAposentadas := 0 
 
     @ 00,00 to 02,79 
     @ 00,30 say " CONTROLE INSS "
@@ -88,11 +90,24 @@ do while .t.
         //calculos para auxiliar o codigo
         nAddNoturno           := nAddNoturno / 100
         nAddInsalubridade     := nAddInsalubridade / 100
-        nTempoTrabalhado      := Year(dDemissao) - Year(dAdmissao)
         nAnoAdmissao          := Year(dAdmissao)
-        nAnoDemissao          := Year(dDemissao)   
-        nIdade                := Year(Date()) - Year(dNascimento)  
+        nAnoDemissao          := Year(dDemissao)
 
+        nTempoTrabalhado      := Year(dDemissao) - Year(dAdmissao)
+        if Month(dAdmissao) > Month(dDemissao)
+            nTempoTrabalhado--
+        elseif Month(dAdmissao) == Month(dDemissao) .and. Day(dAdmissao) > Day(dDemissao)
+            nTempoTrabalhado--
+        endif
+
+        nIdade := Year(Date()) - Year(dNascimento)
+        if Month(dNascimento) > Month(Date())
+            nIdade--
+        elseif Month(dNascimento) == Month(Date()) .and. Day(dNascimento) > Day(Date())
+            nIdade--
+        endif
+          
+//===========================================================================
         if nAnoAdmissao <= 2005 .and. nAnoDemissao >= 2009
             nPorcentagemAumento += 0.08
         endif
@@ -136,6 +151,7 @@ do while .t.
             @ 11,40 say "Salario final: R$ " + AllTrim(Transform(nSalarioFinal, "@E 999,999.99"))
         endif       
         
+        nIteracoes++
         inKey(1)
         @ 11,40 clear to 11,78 // limpa o texto 'Salario final: ...' 
     enddo 
@@ -144,9 +160,11 @@ do while .t.
         loop
     endif
 
-    nTotalAposentados               := nHomensAposentados + nMulheresAposentadas
-    nPorcentagemHomensAposentados   := (nHomensAposentados * 100 ) / nIteracoes
-    nPorcentagemMulheresAposentadas := (nMulheresAposentadas * 100) / nIteracoes
+    nTotalAposentados                  := nHomensAposentados + nMulheresAposentadas
+    nPorcentagemHomensAposentados      := (nHomensAposentados * 100 ) / nIteracoes
+    nPorcentagemMulheresAposentadas    := (nMulheresAposentadas * 100) / nIteracoes
+    nPorcentagemHomensNaoAposentados   := (nHomensNaoAposentados * 100) / nIteracoes
+    nPorcentagemMulheresNaoAposentadas := (nMulheresNaoAposentadas * 100) / nIteracoes
 
     @ 13,00 to 21,79
     @ 13,30 say " ESTATISTICAS "
@@ -154,6 +172,7 @@ do while .t.
     @ 14,33 say " | Total remuneracao - Homens..: R$ " + AllTrim(Transform(nTotalRemuneracaoHom, "@E 999,999.99")) 
     @ 15,01 say "Mulheres aposentadas..: " + Transform(nPorcentagemMulheresAposentadas, "@E 999.9") + " %"
     @ 15,33 say " | Total remuneracao - Mulheres: R$ " + AllTrim(Transform(nTotalRemuneracaoFem, "@E 999,999.99"))
+   // @ 16,01 say "Homens nao aposentados: " +
     @ 16,01 to 16,78
     @ 17,01 say "Quantidade de homens com idade superior a 80 anos....: " + AllTrim(Str(nQtdHomens80))
     @ 18,01 say "Quantidade de mulheres admitidas antes do ano de 2003: " + AllTrim(Str(nQtdMulheresAntes2003))
