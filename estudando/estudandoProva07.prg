@@ -51,7 +51,7 @@ do while .t.  // programa principal
         cDescricaoEquipamento := Space(40)
         dCompra               := CToD('')
         nLimiteCredito        := 0
-        cTipoServico          := Space(1)  // produto ou servico  
+        nTotalComissaoTecnico := 0
         nValorTotalOrdem      := 0
 
         // entrega
@@ -78,15 +78,17 @@ do while .t.  // programa principal
         @ 03,01 say 'Data da Ordem de Servico...: ' + DToC(dOrdemServico)
         @ 04,01 say 'Nome do tecnico............: '
         @ 05,01 say 'Descricao do equipamento...: '
-        @ 06,01 say 'Entrega a domicilio........:   [S]im [N]ao'
-        @ 07,01 say 'Limite de credito - cliente: ' 
+        @ 06,01 say 'Data da compra.............: '
+        @ 07,01 say 'Entrega a domicilio........:   [S]im [N]ao'
+        @ 08,01 say 'Limite de credito - cliente: ' 
 
         @ 02,30 get cNomeCliente          picture '@!'              valid !Empty(cNomeCliente)
         @ 03,30 get dOrdemServico             
         @ 04,30 get cNomeTecnico          picture '@!'              valid !Empty(cNomeTecnico)
         @ 05,30 get cDescricaoEquipamento picture '@!'              valid !Empty(cDescricaoEquipamento)
-        @ 06,30 get cEntrega              picture '@!'              valid cEntrega $ 'SN'
-        @ 07,30 get nLimiteCredito        picture '@E 9,999,999.99' valid nLimiteCredito > 0
+        @ 06,30 get dCompra                                         valid dCompra <= dOrdemServico
+        @ 07,30 get cEntrega              picture '@!'              valid cEntrega $ 'SN'
+        @ 08,30 get nLimiteCredito        picture '@E 9,999,999.99' valid nLimiteCredito > 0
         read 
 
         if LastKey() == 27 
@@ -97,20 +99,28 @@ do while .t.  // programa principal
             loop
         endif
 
-        if cEntrega == 'S'
-            @ 08,01 to 08,78
-            @ 08,30 say ' DADOS PARA ENTREGA '
-            @ 09,01 say 'Endereco...: '
-            @ 10,01 say 'Bairro.....: '
-            @ 11,01 say 'Referencia.: '
-            @ 12,01 say 'Telefone...: (  ) 9      -     '
+        // calculo do tempo de equipamento
+        nTempoEquipamento := Year(dOrdemServico) - Year(dCompra)
+        if Month(dCompra) > Month(dOrdemServico)
+            nTempoEquipamento--
+        elseif Month(dCompra) == Month(dOrdemServico) .and. Day(dCompra) > Day(dOrdemServico)
+            nTempoEquipamento--
+        endif 
 
-            @ 09,15 get cEndereco      picture '@!'   valid !Empty(cEndereco) 
-            @ 10,15 get cBairro        picture '@!'   valid !Empty(cBairro)
-            @ 11,15 get cReferencia    picture '@!'   valid !Empty(cReferencia)
-            @ 12,15 get nDDD           picture '99'   valid !Empty(nDDD)
-            @ 12,21 get nPrimeiraParte picture '9999' valid !Empty(nPrimeiraParte)
-            @ 12,27 get nSegundaParte  picture '9999' valid !Empty(nSegundaParte) 
+        if cEntrega == 'S'
+            @ 09,01 to 09,78
+            @ 09,30 say ' DADOS PARA ENTREGA '
+            @ 10,01 say 'Endereco...: '
+            @ 11,01 say 'Bairro.....: '
+            @ 12,01 say 'Referencia.: '
+            @ 13,01 say 'Telefone...: (  ) 9      -     '
+
+            @ 10,15 get cEndereco      picture '@!'   valid !Empty(cEndereco) 
+            @ 11,15 get cBairro        picture '@!'   valid !Empty(cBairro)
+            @ 12,15 get cReferencia    picture '@!'   valid !Empty(cReferencia)
+            @ 13,15 get nDDD           picture '99'   valid !Empty(nDDD)
+            @ 13,21 get nPrimeiraParte picture '9999' valid !Empty(nPrimeiraParte)
+            @ 13,27 get nSegundaParte  picture '9999' valid !Empty(nSegundaParte) 
             read
 
             if LastKey() == 27 
@@ -124,19 +134,19 @@ do while .t.  // programa principal
             cTelefone := AllTrim(Str(nDDD)) + ' 9' + AllTrim(Str(nPrimeiraParte)) + '-' + AllTrim(Str(nSegundaParte))
         endif
 
-        @ 08,01 clear to 24,78
+        @ 09,01 clear to 23,78
 
-        @ 09,01 to 09,78 
-        @ 09,30 say ' PRODUTOS '
-        @ 10,01 say 'DESCRICAO                   | QUANTIDADE | PRECO UNIT | DESC % | VALOR TOTAL'
+        @ 10,01 to 10,78 
+        @ 10,30 say ' PRODUTOS '
+        @ 11,01 say 'DESCRICAO                     |  QTD  |  PRECO UNIT  |  DESC % | VALOR TOTAL'
 
         @ 16,01 to 16,78
         @ 16,30 say ' SERVICOS '
         @ 17,01 say 'DESCRICAO                   | DESCONTO % | COMISSAO TECNICO %  | PRECO TOTAL'
 
         // controle de linhas
-        nLinhaProd := 10
-        nLinhaServ := 17
+        nLinhaProd := 12
+        nLinhaServ := 18
 
         do while .t.  // produtos / servicos
             cEscolhaPS := Space(1)
@@ -154,11 +164,11 @@ do while .t.  // programa principal
             nComissaoTecnico := 0
             nPrecoTotalServ  := 0
             
-            cSenhaDigitada := Spcae(10)
+            cSenhaDigitada := Space(10)
 
-            @ 08,01 say 'Escolha:   [P]roduto [S]ervico'
+            @ 09,01 say 'Escolha:   [P]roduto [S]ervico'
 
-            @ 08,09 get cEscolhaPS picture '@!' valid cEscolhaPS $ 'PS'
+            @ 09,10 get cEscolhaPS picture '@!' valid cEscolhaPS $ 'PS'
             read
 
             if LastKey() == 27
@@ -171,13 +181,19 @@ do while .t.  // programa principal
             endif
 
             if cEscolhaPS == 'P'
+
                 @ nLinhaProd,01 get cDescricaoProd picture '@!'                valid !Empty(cDescricaoProd)
-                @ nLinhaProd,35 get nQtdProd       picture '9999'              valid nQtdProd > 0
-                @ nLinhaProd,46 get nPrecoUnitario picture '@E 999,999,999.99' valid nPrecoUnitario > 0
+                @ nLinhaProd,33 get nQtdProd       picture '9999'              valid nQtdProd > 0
+                @ nLinhaProd,40 get nPrecoUnitario picture '@E 999999999.99'   valid nPrecoUnitario > 0
                 @ nLinhaProd,57 get nDescontoProd  picture '@E 999.99'         valid nDescontoProd >= 0 .and. nDescontoProd <= 100
+                read
             
                 nValorTotalProd  := (nQtdProd * nPrecoUnitario)
                 nValorTotalProd  -= (nQtdProd * nPrecoUnitario)  * (nDescontoProd / 100)
+
+                if nTempoEquipamento <= 2
+                    nValorTotalProd := 0
+                endif
 
                 if nLimiteCredito < nValorTotalProd
                     Alert('Limite ultrapassado! Digite a senha para liberar produto')
@@ -205,17 +221,67 @@ do while .t.  // programa principal
                 nValorTotalOrdem += nValorTotalProd
                 nLimiteCredito   -= nValorTotalProd
 
+                Alert(Str(nValorTotalProd))
                 @ nLinhaProd,66 say Transform(nValorTotalProd, '@E 999,999,999.99')
+                
                 nLinhaProd++
-
                 if nLinhaProd > 15
-                    @ 10,01 clear to 15,78
+                    @ 12,01 clear to 15,78
                     nLinhaProd := 10
                 endif
-            else
-        
-            endif
 
+            else  // servico
+
+                @ nLinhaServ,01 get cDescricaoServ   picture '@!'               valid !Empty(cDescricaoServ)
+                @ nLinhaServ,35 get nDescontoServ    picture '999'              valid nDescontoServ >= 0 .and. nDescontoServ <= 100
+                @ nLinhaServ,55 get nComissaoTecnico picture '999'              valid nComissaoTecnico >= 0 .and. nComissaoTecnico <= 100
+                @ nLinhaServ,66 get nPrecoTotalServ  picture '9999999999.99' valid nPrecoTotalServ > 0
+                read
+
+                nPrecoTotalServ       -= nPrecoTotalServ * (nDescontoServ / 100)
+                nTotalComissaoTecnico += nPrecoTotalServ * (nComissaoTecnico / 100)
+
+                if nTempoEquipamento <= 1
+                    nPrecoTotalServ := 0
+                endif
+
+                if nLimiteCredito < nPrecoTotalServ
+                    Alert('Limite ultrapassado! Digite a senha para liberar servico')
+
+                    @ 23,01 say 'Digite a senha: '
+                    @ 23,18 get cSenhaDigitada valid !Empty(cSenhaDigitada)
+                    read
+
+                    if LastKey() == 27
+                        nEscolha := Alert('Deseja cancelar esse servico? ', {'Sim', 'Nao'})
+                        if nEscolha == 1
+                            loop
+                        endif
+                    endif
+
+                    if AllTrim(cSenhaDigitada) == cSenhaSupervisor
+                        Alert('Servico liberado!')
+                    else
+                        Alert('Senha incorreta!')
+                        loop
+                    endif
+                    
+                endif
+
+                nValorTotalOrdem      += nPrecoTotalServ
+                nLimiteCredito        -= nPrecoTotalServ
+
+                nLinhaServ++
+                if nLinhaServ > 21
+                    nLinhaServ := 17
+                    @ 17,01 clear to 21,78
+                endif
+
+            endif
+            
+            @ 22,01 to 22,78
+            @ 23,01 say 'Valor total Ordem de Servico: R$ ' + Transform(nValorTotalOrdem, '@E 9,999,999,999.99')
+            Alert(Str(nValorTotalOrdem))
 
         enddo  // produtos / servicos
 
